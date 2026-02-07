@@ -7,10 +7,11 @@ import java.util.List;
 
 @Data
 public class Order {
-    private Long orderId;
+    private String orderId;
     private Customer customer;
     private Location origin;
     private Location destination;
+    private String description;
     private OrderStatus currentStatus;
     private List<OrderStatus> statusHistory;
 }
