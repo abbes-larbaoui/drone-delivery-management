@@ -7,4 +7,5 @@ import dz.kyrios.dronedeliverymanagement.dto.order.OrderResponse;
 public interface OrderService {
     OrderCreationResponse createOrder(OrderCreationRequest orderCreationRequest, String username);
     OrderResponse getOrder(String orderId, String username);
+    OrderResponse withdrawOrder(String orderId, String username);
 }
