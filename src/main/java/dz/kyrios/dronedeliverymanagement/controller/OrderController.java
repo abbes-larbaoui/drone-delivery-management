@@ -35,4 +35,12 @@ public class OrderController {
         OrderResponse response = orderService.getOrder(orderId, principal.getName());
         return ResponseEntity.ok(response);
     }
+
+    @PreAuthorize("hasRole('USER')")
+    @DeleteMapping("/api/v1/orders/{order-id}")
+    public ResponseEntity<OrderResponse> withdrawOrder(@PathVariable(name = "order-id") String orderId,
+                                                       Principal principal) {
+        OrderResponse response = orderService.withdrawOrder(orderId, principal.getName());
+        return ResponseEntity.ok(response);
+    }
 }

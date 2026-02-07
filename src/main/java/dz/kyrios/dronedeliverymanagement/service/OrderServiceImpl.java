@@ -66,4 +66,41 @@ public class OrderServiceImpl implements OrderService {
         );
         return orderResponse;
     }
+
+    @Override
+    public OrderResponse withdrawOrder(String orderId, String username) {
+        Order order = orderRepository.findByIdAndUsername(orderId, username);
+
+        if (order == null) {
+            throw new NotFoundException("Order not found");
+        }
+        if (!validForWithdrawal(order)) {
+            throw new RuntimeException("Can not withdraw order");
+        }
+        OrderStatus orderStatus = new OrderStatus();
+        orderStatus.setUpdatedBy(username);
+        orderStatus.setUpdatedAt(LocalDateTime.now());
+        orderStatus.setStatus(OrderStatusStatic.CANCELLED);
+
+        order.setCurrentStatus(orderStatus);
+        order.getStatusHistory().add(orderStatus);
+
+        Order updatedOrder = orderRepository.update(order);
+
+        OrderResponse orderResponse = new OrderResponse(
+                updatedOrder.getOrderId(),
+                updatedOrder.getCustomer().getName(),
+                updatedOrder.getCurrentStatus().getStatus().name(),
+                updatedOrder.getOrigin(),
+                updatedOrder.getDestination(),
+                updatedOrder.getDescription()
+        );
+
+        return orderResponse;
+    }
+
+    private boolean validForWithdrawal(Order order) {
+        return OrderStatusStatic.CREATED.equals(order.getCurrentStatus().getStatus())
+                || OrderStatusStatic.RESERVED.equals(order.getCurrentStatus().getStatus());
+    }
 }
