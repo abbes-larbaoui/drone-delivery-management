@@ -8,4 +8,8 @@ import java.util.Set;
 public class Customer {
     private String name;
     private Set<Order> orders;
+
+    public Customer(String name) {
+        this.name = name;
+    }
 }

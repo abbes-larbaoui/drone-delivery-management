@@ -1,5 +1,6 @@
 package dz.kyrios.dronedeliverymanagement.configuration;
 
+import dz.kyrios.dronedeliverymanagement.statics.UserRole;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
@@ -16,7 +17,7 @@ public class JwtService {
 
     private final SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
-    public String generateToken(String name, String type) {
+    public String generateToken(String name, UserRole type) {
         return Jwts.builder()
                 .setSubject(name)
                 .claim("role", type)

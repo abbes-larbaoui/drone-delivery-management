@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class OrderStatus {
-    private Order order;
-    private LocalDateTime statusTime;
     private OrderStatusStatic status;
+    private LocalDateTime updatedAt;
+    private String updatedBy;
 }
