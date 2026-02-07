@@ -20,10 +20,18 @@ public class DroneController {
     }
 
     @PreAuthorize("hasRole('DRONE')")
-    @PutMapping("/drones/jobs/{order-id}/reserve")
+    @PutMapping("/api/v1/drones/jobs/{order-id}/reserve")
     public ResponseEntity<OrderResponse> reserveJob(@PathVariable("order-id") String orderId,
                                                     Principal principal) {
         OrderResponse response = droneService.reserveJob(orderId, principal.getName());
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasRole('DRONE')")
+    @PutMapping("/api/v1/drones/jobs/{order-id}/grab")
+    public ResponseEntity<OrderResponse> grabOrder(@PathVariable("order-id") String orderId,
+                                                   Principal principal) {
+        OrderResponse response = droneService.grabOrder(orderId, principal.getName());
         return ResponseEntity.ok(response);
     }
 }
