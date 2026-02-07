@@ -1,4 +1,6 @@
 package dz.kyrios.dronedeliverymanagement.dto;
 
-public record AuthenticationRequest(String name, String type) {
+import dz.kyrios.dronedeliverymanagement.statics.UserRole;
+
+public record AuthenticationRequest(String name, UserRole type) {
 }
