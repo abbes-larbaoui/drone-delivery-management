@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface OrderRepository {
     List<Order> findAll();
+    Order findById(String orderId);
     Order findByIdAndUsername(String orderId, String username);
     Order save(Order order);
     void delete(String orderId);

@@ -20,6 +20,11 @@ public class OrderRepositoryMemory implements OrderRepository {
     }
 
     @Override
+    public Order findById(String orderId) {
+        return orders.get(orderId);
+    }
+
+    @Override
     public Order findByIdAndUsername(String orderId, String username) {
         Order order = orders.get(orderId);
         if (order == null || !order.getCustomer().getName().equals(username)) {
