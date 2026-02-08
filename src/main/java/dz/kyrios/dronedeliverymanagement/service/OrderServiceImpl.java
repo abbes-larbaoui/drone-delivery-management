@@ -12,7 +12,6 @@ import dz.kyrios.dronedeliverymanagement.statics.OrderStatusStatic;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -31,7 +30,6 @@ public class OrderServiceImpl implements OrderService {
         order.setDescription(orderCreationRequest.description());
         order.setOrigin(orderCreationRequest.origin());
         order.setDestination(orderCreationRequest.destination());
-        order.setStatusHistory(new ArrayList<>());
 
         OrderStatus orderStatus = new OrderStatus();
         orderStatus.setStatus(OrderStatusStatic.CREATED);
@@ -39,7 +37,6 @@ public class OrderServiceImpl implements OrderService {
         orderStatus.setUpdatedBy(username);
 
         order.setCurrentStatus(orderStatus);
-        order.getStatusHistory().add(orderStatus);
 
         // 2. save the order
         Order savedOrder = orderRepository.save(order);

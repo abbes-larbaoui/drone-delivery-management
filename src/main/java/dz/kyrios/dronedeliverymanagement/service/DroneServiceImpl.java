@@ -1,26 +1,43 @@
 package dz.kyrios.dronedeliverymanagement.service;
 
 import dz.kyrios.dronedeliverymanagement.configuration.exception.NotFoundException;
-import dz.kyrios.dronedeliverymanagement.domain.Order;
-import dz.kyrios.dronedeliverymanagement.domain.OrderStatus;
+import dz.kyrios.dronedeliverymanagement.domain.*;
+import dz.kyrios.dronedeliverymanagement.dto.drone.DroneResponse;
 import dz.kyrios.dronedeliverymanagement.dto.order.OrderResponse;
+import dz.kyrios.dronedeliverymanagement.repository.DroneRepository;
 import dz.kyrios.dronedeliverymanagement.repository.OrderRepository;
+import dz.kyrios.dronedeliverymanagement.statics.DroneStateStatic;
 import dz.kyrios.dronedeliverymanagement.statics.OrderStatusStatic;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 public class DroneServiceImpl implements DroneService {
 
     private final OrderRepository orderRepository;
 
-    public DroneServiceImpl(OrderRepository orderRepository) {
+    private final DroneRepository droneRepository;
+
+    public DroneServiceImpl(OrderRepository orderRepository,
+                            DroneRepository droneRepository) {
         this.orderRepository = orderRepository;
+        this.droneRepository = droneRepository;
     }
 
     @Override
     public OrderResponse reserveJob(String orderId, String droneName) {
+        Drone drone = droneRepository.findByName(droneName);
+        if (drone == null) {
+            throw new NotFoundException("Drone not found");
+        }
+
+        if (!DroneStateStatic.AVAILABLE.equals(drone.getCurrentState().getState())) {
+            throw new RuntimeException("Drone is not available");
+        }
+
         Order order = orderRepository.findById(orderId);
         if (order == null) {
             throw new NotFoundException("Order not found");
@@ -40,6 +57,14 @@ public class DroneServiceImpl implements DroneService {
 
         Order updatedOrder = orderRepository.update(order);
 
+        drone.setCurrentOrder(updatedOrder);
+        DroneState currentSate = new DroneState();
+        currentSate.setState(DroneStateStatic.BUSY);
+        currentSate.setStateTime(LocalDateTime.now());
+        drone.setCurrentState(currentSate);
+
+        droneRepository.update(drone);
+
         OrderResponse orderResponse = new OrderResponse(
                 updatedOrder.getOrderId(),
                 updatedOrder.getCustomer().getName(),
@@ -54,6 +79,11 @@ public class DroneServiceImpl implements DroneService {
 
     @Override
     public OrderResponse grabOrder(String orderId, String droneName) {
+        Drone drone = droneRepository.findByName(droneName);
+        if (drone == null) {
+            throw new NotFoundException("Drone not found");
+        }
+
         Order order = orderRepository.findById(orderId);
         if (order == null) {
             throw new NotFoundException("Order not found");
@@ -63,7 +93,7 @@ public class DroneServiceImpl implements DroneService {
             throw new RuntimeException("Order invalid for pickup");
         }
 
-        if (!order.getCurrentStatus().getUpdatedBy().equals(droneName)) {
+        if (drone.getCurrentOrder() == null || !drone.getCurrentOrder().getOrderId().equals(orderId)) {
             throw new RuntimeException("Order not reserved for you");
         }
 
@@ -91,6 +121,11 @@ public class DroneServiceImpl implements DroneService {
 
     @Override
     public OrderResponse deliverOrderOrFailure(String orderId, String droneName, OrderStatusStatic status) {
+        Drone drone = droneRepository.findByName(droneName);
+        if (drone == null) {
+            throw new NotFoundException("Drone not found");
+        }
+
         Order order = orderRepository.findById(orderId);
         if (order == null) {
             throw new NotFoundException("Order not found");
@@ -100,7 +135,7 @@ public class DroneServiceImpl implements DroneService {
             throw new RuntimeException("Order invalid for delivery");
         }
 
-        if (!order.getCurrentStatus().getUpdatedBy().equals(droneName)) {
+        if (drone.getCurrentOrder() == null || !drone.getCurrentOrder().getOrderId().equals(orderId)) {
             throw new RuntimeException("Order not picked by for you");
         }
 
@@ -113,6 +148,13 @@ public class DroneServiceImpl implements DroneService {
         order.getStatusHistory().add(orderStatus);
 
         Order updatedOrder = orderRepository.update(order);
+        drone.setCurrentOrder(null);
+        DroneState currentSate = new DroneState();
+        currentSate.setState(DroneStateStatic.AVAILABLE);
+        currentSate.setStateTime(LocalDateTime.now());
+        drone.setCurrentState(currentSate);
+
+        droneRepository.update(drone);
 
         OrderResponse orderResponse = new OrderResponse(
                 updatedOrder.getOrderId(),
@@ -126,12 +168,82 @@ public class DroneServiceImpl implements DroneService {
         return orderResponse;
     }
 
+    @Override
+    public OrderResponse markDroneBroken(String droneName) {
+        Drone drone = droneRepository.findByName(droneName);
+        if (drone == null) {
+            throw new NotFoundException("Drone not found");
+        }
+
+        DroneState currentState = new DroneState();
+        currentState.setState(DroneStateStatic.BROKEN);
+        currentState.setStateTime(LocalDateTime.now());
+        drone.setCurrentState(currentState);
+
+        if (drone.getCurrentOrder() == null) {
+            log.warn("Free drone {} is broken in {}, {}",
+                    droneName,
+                    drone.getCurrentLocation().getLatitude(),
+                    drone.getCurrentLocation().getLongitude());
+            return null;
+        }
+
+        Order handoffOrder = new Order();
+        handoffOrder.setParent(drone.getCurrentOrder());
+        handoffOrder.setCustomer(drone.getCurrentOrder().getCustomer());
+        handoffOrder.setDescription(drone.getCurrentOrder().getDescription());
+        handoffOrder.setOrigin(drone.getCurrentLocation());
+        handoffOrder.setDestination(drone.getCurrentOrder().getDestination());
+
+        OrderStatus orderStatus = new OrderStatus();
+        orderStatus.setStatus(OrderStatusStatic.HAND_OFF);
+        orderStatus.setUpdatedAt(LocalDateTime.now());
+        orderStatus.setUpdatedBy(drone.getName());
+
+        handoffOrder.setCurrentStatus(orderStatus);
+
+        Order savedOrder = orderRepository.save(handoffOrder);
+
+        drone.setCurrentOrder(null);
+        droneRepository.update(drone);
+
+        OrderResponse orderResponse = new OrderResponse(
+                savedOrder.getOrderId(),
+                savedOrder.getCustomer().getName(),
+                savedOrder.getCurrentStatus().getStatus().name(),
+                savedOrder.getOrigin(),
+                savedOrder.getDestination(),
+                savedOrder.getDescription()
+        );
+
+        return orderResponse;
+    }
+
+    @Override
+    public DroneResponse droneHeartbeat(Location location, String droneName) {
+        Drone drone = droneRepository.findByName(droneName);
+        if (drone == null) {
+            throw new NotFoundException("Drone not found");
+        }
+        drone.setCurrentLocation(location);
+        Drone updatedDrone = droneRepository.update(drone);
+
+        DroneResponse droneResponse = new DroneResponse(
+                updatedDrone.getName(),
+                updatedDrone.getCurrentLocation(),
+                updatedDrone.getCurrentOrder().getOrderId(),
+                updatedDrone.getCurrentOrder().getCurrentStatus().getStatus().name()
+        );
+        return droneResponse;
+    }
+
     private boolean validForReservation(Order order) {
         return OrderStatusStatic.CREATED.equals(order.getCurrentStatus().getStatus());
     }
 
     private boolean validForGrab(Order order) {
-        return OrderStatusStatic.RESERVED.equals(order.getCurrentStatus().getStatus());
+        return OrderStatusStatic.RESERVED.equals(order.getCurrentStatus().getStatus())
+                || OrderStatusStatic.HAND_OFF.equals(order.getCurrentStatus().getStatus());
     }
 
     private boolean validForDeliveryOrFailure(Order order) {

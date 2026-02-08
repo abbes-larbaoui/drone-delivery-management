@@ -1,4 +1,4 @@
-package dz.kyrios.dronedeliverymanagement.dto;
+package dz.kyrios.dronedeliverymanagement.dto.authentication;
 
 import dz.kyrios.dronedeliverymanagement.statics.UserRole;
 

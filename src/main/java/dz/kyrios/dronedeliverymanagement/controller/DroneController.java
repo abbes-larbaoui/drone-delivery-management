@@ -1,5 +1,7 @@
 package dz.kyrios.dronedeliverymanagement.controller;
 
+import dz.kyrios.dronedeliverymanagement.domain.Location;
+import dz.kyrios.dronedeliverymanagement.dto.drone.DroneResponse;
 import dz.kyrios.dronedeliverymanagement.dto.order.OrderResponse;
 import dz.kyrios.dronedeliverymanagement.service.DroneService;
 import dz.kyrios.dronedeliverymanagement.statics.OrderStatusStatic;
@@ -7,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.Principal;
@@ -49,6 +52,21 @@ public class DroneController {
     public ResponseEntity<OrderResponse> failOrder(@PathVariable("order-id") String orderId,
                                                    Principal principal) {
         OrderResponse response = droneService.deliverOrderOrFailure(orderId, principal.getName(), OrderStatusStatic.FAILED);
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasRole('DRONE')")
+    @PutMapping("/api/v1/drones/broken")
+    public ResponseEntity<OrderResponse> markDroneBroken(Principal principal) {
+        OrderResponse response = droneService.markDroneBroken(principal.getName());
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasRole('DRONE')")
+    @PutMapping("/api/v1/drones/heartbeat")
+    public ResponseEntity<DroneResponse> droneHeartbeat(@RequestBody Location location,
+                                                        Principal principal) {
+        DroneResponse response = droneService.droneHeartbeat(location, principal.getName());
         return ResponseEntity.ok(response);
     }
 }

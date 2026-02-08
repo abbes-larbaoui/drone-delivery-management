@@ -7,8 +7,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class DroneState {
-    private Drone drone;
     private LocalDateTime stateTime;
-    private DroneStateStatic status;
+    private DroneStateStatic state;
     //TODO: add Drone location
 }
