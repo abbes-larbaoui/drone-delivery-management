@@ -10,7 +10,7 @@ public class OrderRepositoryMemory implements OrderRepository {
 
     private final Map<String, Order> orders;
 
-    OrderRepositoryMemory() {
+    public OrderRepositoryMemory() {
         orders = new HashMap<>();
     }
 
