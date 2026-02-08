@@ -12,6 +12,7 @@ public class Order {
     private Customer customer;
     private Location origin;
     private Location destination;
+    private Location currentLocation;
     private String description;
     private OrderStatus currentStatus;
     private List<OrderStatus> statusHistory;

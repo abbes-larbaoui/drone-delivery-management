@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -71,6 +73,7 @@ public class DroneServiceImpl implements DroneService {
                 updatedOrder.getCurrentStatus().getStatus().name(),
                 updatedOrder.getOrigin(),
                 updatedOrder.getDestination(),
+                updatedOrder.getCurrentLocation(),
                 updatedOrder.getDescription()
         );
 
@@ -113,6 +116,7 @@ public class DroneServiceImpl implements DroneService {
                 updatedOrder.getCurrentStatus().getStatus().name(),
                 updatedOrder.getOrigin(),
                 updatedOrder.getDestination(),
+                updatedOrder.getCurrentLocation(),
                 updatedOrder.getDescription()
         );
 
@@ -146,6 +150,11 @@ public class DroneServiceImpl implements DroneService {
 
         order.setCurrentStatus(orderStatus);
         order.getStatusHistory().add(orderStatus);
+        if (OrderStatusStatic.DELIVERED.equals(orderStatus.getStatus())) {
+            order.setCurrentLocation(order.getDestination());
+        } else if (OrderStatusStatic.FAILED.equals(orderStatus.getStatus())) {
+            order.setCurrentLocation(order.getOrigin());
+        }
 
         Order updatedOrder = orderRepository.update(order);
         drone.setCurrentOrder(null);
@@ -162,6 +171,7 @@ public class DroneServiceImpl implements DroneService {
                 updatedOrder.getCurrentStatus().getStatus().name(),
                 updatedOrder.getOrigin(),
                 updatedOrder.getDestination(),
+                updatedOrder.getCurrentLocation(),
                 updatedOrder.getDescription()
         );
 
@@ -213,6 +223,7 @@ public class DroneServiceImpl implements DroneService {
                 savedOrder.getCurrentStatus().getStatus().name(),
                 savedOrder.getOrigin(),
                 savedOrder.getDestination(),
+                savedOrder.getCurrentLocation(),
                 savedOrder.getDescription()
         );
 
@@ -226,6 +237,68 @@ public class DroneServiceImpl implements DroneService {
             throw new NotFoundException("Drone not found");
         }
         drone.setCurrentLocation(location);
+        Drone updatedDrone = droneRepository.update(drone);
+
+        Order order = drone.getCurrentOrder();
+        if (order != null) {
+            order.setCurrentLocation(location);
+            orderRepository.update(order);
+        }
+
+        DroneResponse droneResponse = new DroneResponse(
+                updatedDrone.getName(),
+                updatedDrone.getCurrentLocation(),
+                updatedDrone.getCurrentOrder().getOrderId(),
+                updatedDrone.getCurrentOrder().getCurrentStatus().getStatus().name()
+        );
+        return droneResponse;
+    }
+
+    @Override
+    public OrderResponse getCurrentOrder(String droneName) {
+        Drone drone = droneRepository.findByName(droneName);
+        if (drone == null) {
+            throw new NotFoundException("Drone not found");
+        }
+        OrderResponse orderResponse = new OrderResponse(
+                drone.getCurrentOrder().getOrderId(),
+                drone.getCurrentOrder().getCustomer().getName(),
+                drone.getCurrentOrder().getCurrentStatus().getStatus().name(),
+                drone.getCurrentOrder().getOrigin(),
+                drone.getCurrentOrder().getDestination(),
+                drone.getCurrentOrder().getCurrentLocation(),
+                drone.getCurrentOrder().getDescription()
+        );
+
+        return orderResponse;
+    }
+
+    @Override
+    public List<DroneResponse> getAllDrones() {
+        List<DroneResponse> droneResponses = new ArrayList<>();
+        for (Drone drone : droneRepository.findAll()) {
+            DroneResponse droneResponse = new DroneResponse(
+                    drone.getName(),
+                    drone.getCurrentLocation(),
+                    drone.getCurrentOrder().getOrderId(),
+                    drone.getCurrentOrder().getCurrentStatus().getStatus().name()
+            );
+            droneResponses.add(droneResponse);
+        }
+        return droneResponses;
+    }
+
+    @Override
+    public DroneResponse fixDrone(String droneName) {
+        Drone drone = droneRepository.findByName(droneName);
+        if (drone == null) {
+            throw new NotFoundException("Drone not found");
+        }
+        DroneState currentState = new DroneState();
+        currentState.setStateTime(LocalDateTime.now());
+        currentState.setState(DroneStateStatic.AVAILABLE);
+
+        drone.setCurrentState(currentState);
         Drone updatedDrone = droneRepository.update(drone);
 
         DroneResponse droneResponse = new DroneResponse(
