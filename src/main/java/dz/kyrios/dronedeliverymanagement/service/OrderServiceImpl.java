@@ -2,6 +2,7 @@ package dz.kyrios.dronedeliverymanagement.service;
 
 import dz.kyrios.dronedeliverymanagement.configuration.exception.NotFoundException;
 import dz.kyrios.dronedeliverymanagement.domain.Customer;
+import dz.kyrios.dronedeliverymanagement.domain.Location;
 import dz.kyrios.dronedeliverymanagement.domain.Order;
 import dz.kyrios.dronedeliverymanagement.domain.OrderStatus;
 import dz.kyrios.dronedeliverymanagement.dto.order.OrderCreationRequest;
@@ -12,6 +13,8 @@ import dz.kyrios.dronedeliverymanagement.statics.OrderStatusStatic;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -30,6 +33,7 @@ public class OrderServiceImpl implements OrderService {
         order.setDescription(orderCreationRequest.description());
         order.setOrigin(orderCreationRequest.origin());
         order.setDestination(orderCreationRequest.destination());
+        order.setCurrentLocation(orderCreationRequest.destination());
 
         OrderStatus orderStatus = new OrderStatus();
         orderStatus.setStatus(OrderStatusStatic.CREATED);
@@ -59,9 +63,28 @@ public class OrderServiceImpl implements OrderService {
                 order.getCurrentStatus().getStatus().name(),
                 order.getOrigin(),
                 order.getDestination(),
+                order.getCurrentLocation(),
                 order.getDescription()
         );
         return orderResponse;
+    }
+
+    @Override
+    public List<OrderResponse> getAllOrders() {
+        List<OrderResponse> orderResponses = new ArrayList<>();
+        for (Order order : orderRepository.findAll()) {
+            OrderResponse orderResponse = new OrderResponse(
+                    order.getOrderId(),
+                    order.getCustomer().getName(),
+                    order.getCurrentStatus().getStatus().name(),
+                    order.getOrigin(),
+                    order.getDestination(),
+                    order.getCurrentLocation(),
+                    order.getDescription()
+            );
+            orderResponses.add(orderResponse);
+        }
+        return orderResponses;
     }
 
     @Override
@@ -90,6 +113,31 @@ public class OrderServiceImpl implements OrderService {
                 updatedOrder.getCurrentStatus().getStatus().name(),
                 updatedOrder.getOrigin(),
                 updatedOrder.getDestination(),
+                order.getCurrentLocation(),
+                updatedOrder.getDescription()
+        );
+
+        return orderResponse;
+    }
+
+    @Override
+    public OrderResponse updateOriginDestination(String orderId, Location origin, Location destination) {
+        Order order = orderRepository.findById(orderId);
+        if (order == null) {
+            throw new NotFoundException("Order not found");
+        }
+        order.setOrigin(origin);
+        order.setDestination(destination);
+
+        Order updatedOrder = orderRepository.update(order);
+
+        OrderResponse orderResponse = new OrderResponse(
+                updatedOrder.getOrderId(),
+                updatedOrder.getCustomer().getName(),
+                updatedOrder.getCurrentStatus().getStatus().name(),
+                updatedOrder.getOrigin(),
+                updatedOrder.getDestination(),
+                order.getCurrentLocation(),
                 updatedOrder.getDescription()
         );
 
