@@ -52,7 +52,89 @@ public class DroneServiceImpl implements DroneService {
         return orderResponse;
     }
 
+    @Override
+    public OrderResponse grabOrder(String orderId, String droneName) {
+        Order order = orderRepository.findById(orderId);
+        if (order == null) {
+            throw new NotFoundException("Order not found");
+        }
+
+        if (!validForGrab(order)) {
+            throw new RuntimeException("Order invalid for pickup");
+        }
+
+        if (!order.getCurrentStatus().getUpdatedBy().equals(droneName)) {
+            throw new RuntimeException("Order not reserved for you");
+        }
+
+        OrderStatus orderStatus = new OrderStatus();
+        orderStatus.setStatus(OrderStatusStatic.PICKED_UP);
+        orderStatus.setUpdatedAt(LocalDateTime.now());
+        orderStatus.setUpdatedBy(droneName);
+
+        order.setCurrentStatus(orderStatus);
+        order.getStatusHistory().add(orderStatus);
+
+        Order updatedOrder = orderRepository.update(order);
+
+        OrderResponse orderResponse = new OrderResponse(
+                updatedOrder.getOrderId(),
+                updatedOrder.getCustomer().getName(),
+                updatedOrder.getCurrentStatus().getStatus().name(),
+                updatedOrder.getOrigin(),
+                updatedOrder.getDestination(),
+                updatedOrder.getDescription()
+        );
+
+        return orderResponse;
+    }
+
+    @Override
+    public OrderResponse deliverOrderOrFailure(String orderId, String droneName, OrderStatusStatic status) {
+        Order order = orderRepository.findById(orderId);
+        if (order == null) {
+            throw new NotFoundException("Order not found");
+        }
+
+        if (!validForDeliveryOrFailure(order)) {
+            throw new RuntimeException("Order invalid for delivery");
+        }
+
+        if (!order.getCurrentStatus().getUpdatedBy().equals(droneName)) {
+            throw new RuntimeException("Order not picked by for you");
+        }
+
+        OrderStatus orderStatus = new OrderStatus();
+        orderStatus.setStatus(status);
+        orderStatus.setUpdatedAt(LocalDateTime.now());
+        orderStatus.setUpdatedBy(droneName);
+
+        order.setCurrentStatus(orderStatus);
+        order.getStatusHistory().add(orderStatus);
+
+        Order updatedOrder = orderRepository.update(order);
+
+        OrderResponse orderResponse = new OrderResponse(
+                updatedOrder.getOrderId(),
+                updatedOrder.getCustomer().getName(),
+                updatedOrder.getCurrentStatus().getStatus().name(),
+                updatedOrder.getOrigin(),
+                updatedOrder.getDestination(),
+                updatedOrder.getDescription()
+        );
+
+        return orderResponse;
+    }
+
     private boolean validForReservation(Order order) {
         return OrderStatusStatic.CREATED.equals(order.getCurrentStatus().getStatus());
+    }
+
+    private boolean validForGrab(Order order) {
+        return OrderStatusStatic.RESERVED.equals(order.getCurrentStatus().getStatus());
+    }
+
+    private boolean validForDeliveryOrFailure(Order order) {
+        return OrderStatusStatic.PICKED_UP.equals(order.getCurrentStatus().getStatus());
     }
 }
