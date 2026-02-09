@@ -9,5 +9,4 @@ import java.time.LocalDateTime;
 public class DroneState {
     private LocalDateTime stateTime;
     private DroneStateStatic state;
-    //TODO: add Drone location
 }
