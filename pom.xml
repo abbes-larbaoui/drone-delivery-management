@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>dz.kyrios</groupId>
-	<artifactId>drone-delevery-management</artifactId>
+	<artifactId>drone-delivery-management</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>drone-delivery-management</name>
 	<description>drone-delivery-management</description>
