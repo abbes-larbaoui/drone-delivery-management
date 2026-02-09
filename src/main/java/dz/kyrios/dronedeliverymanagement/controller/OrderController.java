@@ -1,7 +1,6 @@
 package dz.kyrios.dronedeliverymanagement.controller;
 
 import dz.kyrios.dronedeliverymanagement.dto.order.OrderCreationRequest;
-import dz.kyrios.dronedeliverymanagement.dto.order.OrderCreationResponse;
 import dz.kyrios.dronedeliverymanagement.dto.order.OrderResponse;
 import dz.kyrios.dronedeliverymanagement.dto.order.UpdateOriginDestinationRequest;
 import dz.kyrios.dronedeliverymanagement.service.OrderService;
@@ -24,9 +23,9 @@ public class OrderController {
 
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/api/v1/orders")
-    public ResponseEntity<OrderCreationResponse> createOrder(@RequestBody OrderCreationRequest orderCreationRequest,
-                                                             Principal principal) {
-        OrderCreationResponse response = orderService.createOrder(orderCreationRequest, principal.getName());
+    public ResponseEntity<OrderResponse> createOrder(@RequestBody OrderCreationRequest orderCreationRequest,
+                                                     Principal principal) {
+        OrderResponse response = orderService.createOrder(orderCreationRequest, principal.getName());
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -59,8 +58,8 @@ public class OrderController {
                                                      @RequestBody UpdateOriginDestinationRequest updateOriginDestinationRequest) {
         OrderResponse response =
                 orderService.updateOriginDestination(orderId,
-                updateOriginDestinationRequest.origin(),
-                updateOriginDestinationRequest.destination());
+                        updateOriginDestinationRequest.origin(),
+                        updateOriginDestinationRequest.destination());
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 }

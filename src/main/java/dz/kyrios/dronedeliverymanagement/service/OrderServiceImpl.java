@@ -6,8 +6,8 @@ import dz.kyrios.dronedeliverymanagement.domain.Location;
 import dz.kyrios.dronedeliverymanagement.domain.Order;
 import dz.kyrios.dronedeliverymanagement.domain.OrderStatus;
 import dz.kyrios.dronedeliverymanagement.dto.order.OrderCreationRequest;
-import dz.kyrios.dronedeliverymanagement.dto.order.OrderCreationResponse;
 import dz.kyrios.dronedeliverymanagement.dto.order.OrderResponse;
+import dz.kyrios.dronedeliverymanagement.mapper.OrderMapper;
 import dz.kyrios.dronedeliverymanagement.repository.OrderRepository;
 import dz.kyrios.dronedeliverymanagement.statics.OrderStatusStatic;
 import org.springframework.stereotype.Service;
@@ -26,8 +26,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderCreationResponse createOrder(OrderCreationRequest orderCreationRequest, String username) {
-        // 1. order obj
+    public OrderResponse createOrder(OrderCreationRequest orderCreationRequest, String username) {
         Order order = new Order();
         order.setCustomer(new Customer(username));
         order.setDescription(orderCreationRequest.description());
@@ -42,11 +41,9 @@ public class OrderServiceImpl implements OrderService {
 
         order.setCurrentStatus(orderStatus);
 
-        // 2. save the order
         Order savedOrder = orderRepository.save(order);
 
-        // 3. return the response
-        return new OrderCreationResponse(savedOrder.getOrderId(), savedOrder.getCurrentStatus().getStatus());
+        return OrderMapper.orderToOrderResponse(savedOrder);
     }
 
     @Override
@@ -57,31 +54,14 @@ public class OrderServiceImpl implements OrderService {
             throw new NotFoundException("Order not found");
         }
 
-        OrderResponse orderResponse = new OrderResponse(
-                order.getOrderId(),
-                order.getCustomer().getName(),
-                order.getCurrentStatus().getStatus().name(),
-                order.getOrigin(),
-                order.getDestination(),
-                order.getCurrentLocation(),
-                order.getDescription()
-        );
-        return orderResponse;
+        return OrderMapper.orderToOrderResponse(order);
     }
 
     @Override
     public List<OrderResponse> getAllOrders() {
         List<OrderResponse> orderResponses = new ArrayList<>();
         for (Order order : orderRepository.findAll()) {
-            OrderResponse orderResponse = new OrderResponse(
-                    order.getOrderId(),
-                    order.getCustomer().getName(),
-                    order.getCurrentStatus().getStatus().name(),
-                    order.getOrigin(),
-                    order.getDestination(),
-                    order.getCurrentLocation(),
-                    order.getDescription()
-            );
+            OrderResponse orderResponse = OrderMapper.orderToOrderResponse(order);
             orderResponses.add(orderResponse);
         }
         return orderResponses;
@@ -107,17 +87,7 @@ public class OrderServiceImpl implements OrderService {
 
         Order updatedOrder = orderRepository.update(order);
 
-        OrderResponse orderResponse = new OrderResponse(
-                updatedOrder.getOrderId(),
-                updatedOrder.getCustomer().getName(),
-                updatedOrder.getCurrentStatus().getStatus().name(),
-                updatedOrder.getOrigin(),
-                updatedOrder.getDestination(),
-                order.getCurrentLocation(),
-                updatedOrder.getDescription()
-        );
-
-        return orderResponse;
+        return OrderMapper.orderToOrderResponse(updatedOrder);
     }
 
     @Override
@@ -131,17 +101,7 @@ public class OrderServiceImpl implements OrderService {
 
         Order updatedOrder = orderRepository.update(order);
 
-        OrderResponse orderResponse = new OrderResponse(
-                updatedOrder.getOrderId(),
-                updatedOrder.getCustomer().getName(),
-                updatedOrder.getCurrentStatus().getStatus().name(),
-                updatedOrder.getOrigin(),
-                updatedOrder.getDestination(),
-                order.getCurrentLocation(),
-                updatedOrder.getDescription()
-        );
-
-        return orderResponse;
+        return OrderMapper.orderToOrderResponse(updatedOrder);
     }
 
     private boolean validForWithdrawal(Order order) {

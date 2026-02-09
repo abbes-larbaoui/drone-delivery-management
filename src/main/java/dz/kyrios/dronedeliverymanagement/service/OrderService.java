@@ -2,13 +2,12 @@ package dz.kyrios.dronedeliverymanagement.service;
 
 import dz.kyrios.dronedeliverymanagement.domain.Location;
 import dz.kyrios.dronedeliverymanagement.dto.order.OrderCreationRequest;
-import dz.kyrios.dronedeliverymanagement.dto.order.OrderCreationResponse;
 import dz.kyrios.dronedeliverymanagement.dto.order.OrderResponse;
 
 import java.util.List;
 
 public interface OrderService {
-    OrderCreationResponse createOrder(OrderCreationRequest orderCreationRequest, String username);
+    OrderResponse createOrder(OrderCreationRequest orderCreationRequest, String username);
     OrderResponse getOrder(String orderId, String username);
     List<OrderResponse> getAllOrders();
     OrderResponse withdrawOrder(String orderId, String username);

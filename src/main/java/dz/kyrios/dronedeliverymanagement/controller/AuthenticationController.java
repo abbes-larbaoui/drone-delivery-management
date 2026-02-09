@@ -1,7 +1,7 @@
 package dz.kyrios.dronedeliverymanagement.controller;
 
 
-import dz.kyrios.dronedeliverymanagement.configuration.JwtService;
+import dz.kyrios.dronedeliverymanagement.configuration.security.JwtService;
 import dz.kyrios.dronedeliverymanagement.dto.authentication.AuthenticationRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
