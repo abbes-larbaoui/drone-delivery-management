@@ -5,6 +5,7 @@ import dz.kyrios.dronedeliverymanagement.dto.drone.DroneResponse;
 import dz.kyrios.dronedeliverymanagement.dto.order.OrderResponse;
 import dz.kyrios.dronedeliverymanagement.service.DroneService;
 import dz.kyrios.dronedeliverymanagement.statics.OrderStatusStatic;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -95,5 +96,12 @@ public class DroneController {
     public ResponseEntity<DroneResponse> fixDrone(@PathVariable("drone-name") String droneName) {
         DroneResponse response = droneService.fixDrone(droneName);
         return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/api/v1/drones//admin")
+    public ResponseEntity<DroneResponse> createDrone(@RequestBody String droneName) {
+        DroneResponse response = droneService.createDrone(droneName);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 }

@@ -8,4 +8,5 @@ public interface DroneRepository {
     List<Drone> findAll();
     Drone findByName(String droneName);
     Drone update(Drone drone);
+    Drone save(Drone drone);
 }

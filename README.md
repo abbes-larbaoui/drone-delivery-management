@@ -144,6 +144,8 @@ Admin
 
     Update order origin/destination
 
+    Add new drone (not requested in the assessment)
+
 ## Running the Application
 
 mvn clean install
@@ -166,7 +168,7 @@ http://localhost:8080
 
 ## System Endpoints
 
-## Authentication API
+### Authentication API
 
 | Method | Endpoint | Description | Role | Request Body | Response |
 |--------|----------|-------------|------|--------------|----------|
@@ -174,7 +176,7 @@ http://localhost:8080
 
 ---
 
-## Orders API
+### Orders API
 
 | Method | Endpoint | Description | Role | Request Body | Response |
 |--------|----------|-------------|------|--------------|----------|
@@ -186,18 +188,19 @@ http://localhost:8080
 
 ---
 
-## Drone API
+### Drone API
 
-| Method | Endpoint | Description | Role | Request Body | Notes |
-|--------|----------|-------------|------|--------------|-------|
-| PUT | /api/v1/drones/jobs/{order-id}/reserve | Reserve an available order | DRONE | — | — |
-| PUT | /api/v1/drones/jobs/{order-id}/grab | Pick up a reserved order | DRONE | — | — |
-| PUT | /api/v1/drones/jobs/{order-id}/deliver | Deliver an order | DRONE | — | — |
-| PUT | /api/v1/drones/jobs/{order-id}/fail | Fail an order | DRONE | — | — |
-| PUT | /api/v1/drones/heartbeat | Send drone location update | DRONE | `{ "latitude": 12, "longitude": 34 }` | — |
-| GET | /api/v1/drones/order | Get current assigned order | DRONE | — | — |
-| PUT | /api/v1/drones/broken | Mark drone as broken | DRONE | — | If carrying an order, a handoff order is created automatically |
-| GET | /api/v1/drones/admin | Get all drones | ADMIN | — | — |
-| PUT | /api/v1/drones/{drone-name}/admin/broken | Force drone to BROKEN state | ADMIN | — | — |
-| PUT | /api/v1/drones/{drone-name}/admin/fix | Fix a broken drone | ADMIN | — | — |
+| Method | Endpoint | Description                | Role | Request Body                          | Notes |
+|--------|----------|----------------------------|------|---------------------------------------|-------|
+| PUT    | /api/v1/drones/jobs/{order-id}/reserve | Reserve an available order | DRONE | —                                     | — |
+| PUT    | /api/v1/drones/jobs/{order-id}/grab | Pick up a reserved order   | DRONE | —                                     | — |
+| PUT    | /api/v1/drones/jobs/{order-id}/deliver | Deliver an order           | DRONE | —                                     | — |
+| PUT    | /api/v1/drones/jobs/{order-id}/fail | Fail an order              | DRONE | —                                     | — |
+| PUT    | /api/v1/drones/heartbeat | Send drone location update | DRONE | `{ "latitude": 12, "longitude": 34 }` | — |
+| GET    | /api/v1/drones/order | Get current assigned order | DRONE | —                                     | — |
+| PUT    | /api/v1/drones/broken | Mark drone as broken       | DRONE | —                                     | If carrying an order, a handoff order is created automatically |
+| GET    | /api/v1/drones/admin | Get all drones             | ADMIN | —                                     | — |
+| PUT    | /api/v1/drones/{drone-name}/admin/broken | Force drone to BROKEN state | ADMIN | —                                     | — |
+| PUT    | /api/v1/drones/{drone-name}/admin/fix | Fix a broken drone         | ADMIN | —                                     | — |
+| POST   | /api/v1/drones/admin | Add new drone              | ADMIN | `{ "droneName": "drone-1" }`          | — |
 
