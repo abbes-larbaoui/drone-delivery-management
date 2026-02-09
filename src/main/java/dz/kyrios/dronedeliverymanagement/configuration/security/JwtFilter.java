@@ -1,4 +1,4 @@
-package dz.kyrios.dronedeliverymanagement.configuration;
+package dz.kyrios.dronedeliverymanagement.configuration.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

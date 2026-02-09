@@ -1,4 +1,4 @@
-package dz.kyrios.dronedeliverymanagement.configuration;
+package dz.kyrios.dronedeliverymanagement.configuration.security;
 
 import dz.kyrios.dronedeliverymanagement.statics.UserRole;
 import io.jsonwebtoken.*;

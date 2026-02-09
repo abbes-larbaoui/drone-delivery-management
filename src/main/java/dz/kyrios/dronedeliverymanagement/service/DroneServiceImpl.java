@@ -4,6 +4,8 @@ import dz.kyrios.dronedeliverymanagement.configuration.exception.NotFoundExcepti
 import dz.kyrios.dronedeliverymanagement.domain.*;
 import dz.kyrios.dronedeliverymanagement.dto.drone.DroneResponse;
 import dz.kyrios.dronedeliverymanagement.dto.order.OrderResponse;
+import dz.kyrios.dronedeliverymanagement.mapper.DroneMapper;
+import dz.kyrios.dronedeliverymanagement.mapper.OrderMapper;
 import dz.kyrios.dronedeliverymanagement.repository.DroneRepository;
 import dz.kyrios.dronedeliverymanagement.repository.OrderRepository;
 import dz.kyrios.dronedeliverymanagement.statics.DroneStateStatic;
@@ -33,19 +35,23 @@ public class DroneServiceImpl implements DroneService {
     public OrderResponse reserveJob(String orderId, String droneName) {
         Drone drone = droneRepository.findByName(droneName);
         if (drone == null) {
+            log.error("Reserve Job: Drone with name {} not found", droneName);
             throw new NotFoundException("Drone not found");
         }
 
         if (!DroneStateStatic.AVAILABLE.equals(drone.getCurrentState().getState())) {
+            log.error("Reserve Job: Drone {} is not AVAILABLE", drone.getName());
             throw new RuntimeException("Drone is not available");
         }
 
         Order order = orderRepository.findById(orderId);
         if (order == null) {
+            log.error("Reserve Job: Order with id {} not found", orderId);
             throw new NotFoundException("Order not found");
         }
 
         if (!validForReservation(order)) {
+            log.error("Reserve Job: Order with id {} is not reserved yet", orderId);
             throw new RuntimeException("Order invalid for reservation");
         }
 
@@ -67,36 +73,30 @@ public class DroneServiceImpl implements DroneService {
 
         droneRepository.update(drone);
 
-        OrderResponse orderResponse = new OrderResponse(
-                updatedOrder.getOrderId(),
-                updatedOrder.getCustomer().getName(),
-                updatedOrder.getCurrentStatus().getStatus().name(),
-                updatedOrder.getOrigin(),
-                updatedOrder.getDestination(),
-                updatedOrder.getCurrentLocation(),
-                updatedOrder.getDescription()
-        );
-
-        return orderResponse;
+        return OrderMapper.orderToOrderResponse(updatedOrder);
     }
 
     @Override
     public OrderResponse grabOrder(String orderId, String droneName) {
         Drone drone = droneRepository.findByName(droneName);
         if (drone == null) {
+            log.error("Grab Order: Drone with name {} not found", droneName);
             throw new NotFoundException("Drone not found");
         }
 
         Order order = orderRepository.findById(orderId);
         if (order == null) {
+            log.error("Grab Order: Order with id {} not found", orderId);
             throw new NotFoundException("Order not found");
         }
 
         if (!validForGrab(order)) {
+            log.error("Grab Order: Order with id {} invalid for pickup", orderId);
             throw new RuntimeException("Order invalid for pickup");
         }
 
         if (drone.getCurrentOrder() == null || !drone.getCurrentOrder().getOrderId().equals(orderId)) {
+            log.error("Grab Order: Order with id {} invalid for drone", orderId);
             throw new RuntimeException("Order not reserved for you");
         }
 
@@ -110,36 +110,30 @@ public class DroneServiceImpl implements DroneService {
 
         Order updatedOrder = orderRepository.update(order);
 
-        OrderResponse orderResponse = new OrderResponse(
-                updatedOrder.getOrderId(),
-                updatedOrder.getCustomer().getName(),
-                updatedOrder.getCurrentStatus().getStatus().name(),
-                updatedOrder.getOrigin(),
-                updatedOrder.getDestination(),
-                updatedOrder.getCurrentLocation(),
-                updatedOrder.getDescription()
-        );
-
-        return orderResponse;
+        return OrderMapper.orderToOrderResponse(updatedOrder);
     }
 
     @Override
     public OrderResponse deliverOrderOrFailure(String orderId, String droneName, OrderStatusStatic status) {
         Drone drone = droneRepository.findByName(droneName);
         if (drone == null) {
+            log.error("Deliver Order: Drone with name {} not found", droneName);
             throw new NotFoundException("Drone not found");
         }
 
         Order order = orderRepository.findById(orderId);
         if (order == null) {
+            log.error("Deliver Order: Order with id {} not found", orderId);
             throw new NotFoundException("Order not found");
         }
 
         if (!validForDeliveryOrFailure(order)) {
+            log.error("Deliver Order: Order with id {} invalid for delivery", orderId);
             throw new RuntimeException("Order invalid for delivery");
         }
 
         if (drone.getCurrentOrder() == null || !drone.getCurrentOrder().getOrderId().equals(orderId)) {
+            log.error("Deliver Order: Order with id {} invalid for drone", orderId);
             throw new RuntimeException("Order not picked by for you");
         }
 
@@ -165,23 +159,14 @@ public class DroneServiceImpl implements DroneService {
 
         droneRepository.update(drone);
 
-        OrderResponse orderResponse = new OrderResponse(
-                updatedOrder.getOrderId(),
-                updatedOrder.getCustomer().getName(),
-                updatedOrder.getCurrentStatus().getStatus().name(),
-                updatedOrder.getOrigin(),
-                updatedOrder.getDestination(),
-                updatedOrder.getCurrentLocation(),
-                updatedOrder.getDescription()
-        );
-
-        return orderResponse;
+        return OrderMapper.orderToOrderResponse(updatedOrder);
     }
 
     @Override
     public OrderResponse markDroneBroken(String droneName) {
         Drone drone = droneRepository.findByName(droneName);
         if (drone == null) {
+            log.error("Mark Drone Broken: Drone with name {} not found", droneName);
             throw new NotFoundException("Drone not found");
         }
 
@@ -217,23 +202,14 @@ public class DroneServiceImpl implements DroneService {
         drone.setCurrentOrder(null);
         droneRepository.update(drone);
 
-        OrderResponse orderResponse = new OrderResponse(
-                savedOrder.getOrderId(),
-                savedOrder.getCustomer().getName(),
-                savedOrder.getCurrentStatus().getStatus().name(),
-                savedOrder.getOrigin(),
-                savedOrder.getDestination(),
-                savedOrder.getCurrentLocation(),
-                savedOrder.getDescription()
-        );
-
-        return orderResponse;
+        return OrderMapper.orderToOrderResponse(savedOrder);
     }
 
     @Override
     public DroneResponse droneHeartbeat(Location location, String droneName) {
         Drone drone = droneRepository.findByName(droneName);
         if (drone == null) {
+            log.error("Drone Heartbeat: Drone with name {} not found", droneName);
             throw new NotFoundException("Drone not found");
         }
         drone.setCurrentLocation(location);
@@ -245,44 +221,24 @@ public class DroneServiceImpl implements DroneService {
             orderRepository.update(order);
         }
 
-        DroneResponse droneResponse = new DroneResponse(
-                updatedDrone.getName(),
-                updatedDrone.getCurrentLocation(),
-                updatedDrone.getCurrentOrder().getOrderId(),
-                updatedDrone.getCurrentOrder().getCurrentStatus().getStatus().name()
-        );
-        return droneResponse;
+        return DroneMapper.mapDroneToDroneResponse(updatedDrone);
     }
 
     @Override
     public OrderResponse getCurrentOrder(String droneName) {
         Drone drone = droneRepository.findByName(droneName);
         if (drone == null) {
+            log.error("Get Current Order: Drone with name {} not found", droneName);
             throw new NotFoundException("Drone not found");
         }
-        OrderResponse orderResponse = new OrderResponse(
-                drone.getCurrentOrder().getOrderId(),
-                drone.getCurrentOrder().getCustomer().getName(),
-                drone.getCurrentOrder().getCurrentStatus().getStatus().name(),
-                drone.getCurrentOrder().getOrigin(),
-                drone.getCurrentOrder().getDestination(),
-                drone.getCurrentOrder().getCurrentLocation(),
-                drone.getCurrentOrder().getDescription()
-        );
-
-        return orderResponse;
+        return OrderMapper.orderToOrderResponse(drone.getCurrentOrder());
     }
 
     @Override
     public List<DroneResponse> getAllDrones() {
         List<DroneResponse> droneResponses = new ArrayList<>();
         for (Drone drone : droneRepository.findAll()) {
-            DroneResponse droneResponse = new DroneResponse(
-                    drone.getName(),
-                    drone.getCurrentLocation(),
-                    drone.getCurrentOrder().getOrderId(),
-                    drone.getCurrentOrder().getCurrentStatus().getStatus().name()
-            );
+            DroneResponse droneResponse = DroneMapper.mapDroneToDroneResponse(drone);
             droneResponses.add(droneResponse);
         }
         return droneResponses;
@@ -292,6 +248,7 @@ public class DroneServiceImpl implements DroneService {
     public DroneResponse fixDrone(String droneName) {
         Drone drone = droneRepository.findByName(droneName);
         if (drone == null) {
+            log.error("Fix Drone: Drone with name {} not found", droneName);
             throw new NotFoundException("Drone not found");
         }
         DroneState currentState = new DroneState();
@@ -301,13 +258,7 @@ public class DroneServiceImpl implements DroneService {
         drone.setCurrentState(currentState);
         Drone updatedDrone = droneRepository.update(drone);
 
-        DroneResponse droneResponse = new DroneResponse(
-                updatedDrone.getName(),
-                updatedDrone.getCurrentLocation(),
-                updatedDrone.getCurrentOrder().getOrderId(),
-                updatedDrone.getCurrentOrder().getCurrentStatus().getStatus().name()
-        );
-        return droneResponse;
+        return DroneMapper.mapDroneToDroneResponse(updatedDrone);
     }
 
     private boolean validForReservation(Order order) {
