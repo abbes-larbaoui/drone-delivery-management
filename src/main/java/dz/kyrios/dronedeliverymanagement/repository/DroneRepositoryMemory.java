@@ -3,19 +3,12 @@ package dz.kyrios.dronedeliverymanagement.repository;
 import dz.kyrios.dronedeliverymanagement.domain.Drone;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Repository
 public class DroneRepositoryMemory implements DroneRepository {
 
-    private final Map<String, Drone> drones;
-
-    public DroneRepositoryMemory() {
-        this.drones = new HashMap<>();
-    }
+    private final Map<String, Drone> drones = new HashMap<>();
 
     @Override
     public List<Drone> findAll() {
@@ -32,5 +25,11 @@ public class DroneRepositoryMemory implements DroneRepository {
         String droneName = drone.getName();
         drones.put(droneName, drone);
         return drones.get(droneName);
+    }
+
+    @Override
+    public Drone save(Drone drone) {
+        drones.put(drone.getName(), drone);
+        return drones.get(drone.getName());
     }
 }

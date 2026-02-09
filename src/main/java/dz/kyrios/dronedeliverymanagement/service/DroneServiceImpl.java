@@ -261,6 +261,26 @@ public class DroneServiceImpl implements DroneService {
         return DroneMapper.mapDroneToDroneResponse(updatedDrone);
     }
 
+    @Override
+    public DroneResponse createDrone(String droneName) {
+        if (droneRepository.findByName(droneName) != null) {
+            log.error("Drone with name {} already exists", droneName);
+            throw new RuntimeException("Drone with name " + droneName + " already exists");
+        }
+
+        DroneState currentState = new DroneState();
+        currentState.setStateTime(LocalDateTime.now());
+        currentState.setState(DroneStateStatic.AVAILABLE);
+
+        Drone drone = new Drone();
+        drone.setName(droneName);
+        drone.setCurrentState(currentState);
+
+        Drone savedDrone = droneRepository.save(drone);
+
+        return DroneMapper.mapDroneToDroneResponse(savedDrone);
+    }
+
     private boolean validForReservation(Order order) {
         return OrderStatusStatic.CREATED.equals(order.getCurrentStatus().getStatus());
     }

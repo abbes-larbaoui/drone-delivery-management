@@ -16,4 +16,5 @@ public interface DroneService {
     OrderResponse getCurrentOrder(String droneName);
     List<DroneResponse> getAllDrones();
     DroneResponse fixDrone(String droneName);
+    DroneResponse createDrone(String droneName);
 }
