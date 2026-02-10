@@ -1,6 +1,7 @@
 package dz.kyrios.dronedeliverymanagement.controller;
 
 import dz.kyrios.dronedeliverymanagement.domain.Location;
+import dz.kyrios.dronedeliverymanagement.dto.drone.DroneCreationRequest;
 import dz.kyrios.dronedeliverymanagement.dto.drone.DroneResponse;
 import dz.kyrios.dronedeliverymanagement.dto.order.OrderResponse;
 import dz.kyrios.dronedeliverymanagement.service.DroneService;
@@ -99,9 +100,9 @@ public class DroneController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/api/v1/drones//admin")
-    public ResponseEntity<DroneResponse> createDrone(@RequestBody String droneName) {
-        DroneResponse response = droneService.createDrone(droneName);
+    @PostMapping("/api/v1/drones/admin")
+    public ResponseEntity<DroneResponse> createDrone(@RequestBody DroneCreationRequest request) {
+        DroneResponse response = droneService.createDrone(request.droneName());
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 }
