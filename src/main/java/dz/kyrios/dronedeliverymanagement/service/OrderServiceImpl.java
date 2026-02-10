@@ -34,7 +34,7 @@ public class OrderServiceImpl implements OrderService {
         order.setDescription(orderCreationRequest.description());
         order.setOrigin(orderCreationRequest.origin());
         order.setDestination(orderCreationRequest.destination());
-        order.setCurrentLocation(orderCreationRequest.destination());
+        order.setCurrentLocation(orderCreationRequest.origin());
 
         OrderStatus orderStatus = new OrderStatus();
         orderStatus.setStatus(OrderStatusStatic.CREATED);
@@ -101,6 +101,10 @@ public class OrderServiceImpl implements OrderService {
         if (order == null) {
             log.error("Update Origin Order: Order with id {} not found", orderId);
             throw new NotFoundException("Order not found");
+        }
+        if (!OrderStatusStatic.CREATED.equals(order.getCurrentStatus().getStatus())) {
+            log.error("Update Origin Order: Order with id {} can not be updated", orderId);
+            throw new RuntimeException("Can not update order, order already in status: " + order.getCurrentStatus().getStatus());
         }
         order.setOrigin(origin);
         order.setDestination(destination);

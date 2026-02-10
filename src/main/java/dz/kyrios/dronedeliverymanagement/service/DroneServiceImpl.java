@@ -61,7 +61,6 @@ public class DroneServiceImpl implements DroneService {
         orderStatus.setUpdatedBy(droneName);
 
         order.setCurrentStatus(orderStatus);
-        order.getStatusHistory().add(orderStatus);
 
         Order updatedOrder = orderRepository.update(order);
 
@@ -106,7 +105,6 @@ public class DroneServiceImpl implements DroneService {
         orderStatus.setUpdatedBy(droneName);
 
         order.setCurrentStatus(orderStatus);
-        order.getStatusHistory().add(orderStatus);
 
         Order updatedOrder = orderRepository.update(order);
 
@@ -143,7 +141,6 @@ public class DroneServiceImpl implements DroneService {
         orderStatus.setUpdatedBy(droneName);
 
         order.setCurrentStatus(orderStatus);
-        order.getStatusHistory().add(orderStatus);
         if (OrderStatusStatic.DELIVERED.equals(orderStatus.getStatus())) {
             order.setCurrentLocation(order.getDestination());
         } else if (OrderStatusStatic.FAILED.equals(orderStatus.getStatus())) {
@@ -282,12 +279,12 @@ public class DroneServiceImpl implements DroneService {
     }
 
     private boolean validForReservation(Order order) {
-        return OrderStatusStatic.CREATED.equals(order.getCurrentStatus().getStatus());
+        return OrderStatusStatic.CREATED.equals(order.getCurrentStatus().getStatus())
+                || OrderStatusStatic.HAND_OFF.equals(order.getCurrentStatus().getStatus());
     }
 
     private boolean validForGrab(Order order) {
-        return OrderStatusStatic.RESERVED.equals(order.getCurrentStatus().getStatus())
-                || OrderStatusStatic.HAND_OFF.equals(order.getCurrentStatus().getStatus());
+        return OrderStatusStatic.RESERVED.equals(order.getCurrentStatus().getStatus());
     }
 
     private boolean validForDeliveryOrFailure(Order order) {
